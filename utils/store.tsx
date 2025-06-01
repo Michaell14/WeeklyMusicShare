@@ -7,6 +7,7 @@ interface SpotifyUser {
     followers: {
         total: number;
     };
+    id: string;
     images: Array<{
         url: string;
     }>;
@@ -25,14 +26,6 @@ interface Track {
     popularity: number;
     preview_url: string;
 }
-
-interface globalState {
-    ip: string;
-}
-
-export const useGlobalStore = create<globalState>((set, get) => ({
-    ip: "192.168.1.203",
-}));
 
 interface UserState {
     accessToken: string;
@@ -84,7 +77,6 @@ export const useUserStore = create<UserState>((set, get) => ({
         set({ selectionTimer: timer })
     },
     setUserData: (newUserData: SpotifyUser) => {
-        console.log("setting userData IN ZUSTAND: ", newUserData);
         set({ userData: newUserData })
     },
 }));

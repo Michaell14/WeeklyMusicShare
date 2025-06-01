@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, StyleSheet, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
 import FriendsList from '../../components/FriendsList';
-import { useGlobalStore, useUserStore } from "./../../utils/store";
+import { useUserStore } from "./../../utils/store";
 import { client_id, discovery, redirect_uri } from './../../var';
 
 interface Track {
@@ -18,7 +18,6 @@ interface Track {
 export default function Index() {
     const router = useRouter();
 
-    const { ip } = useGlobalStore();
     const {
         accessToken,
         isAuthenticated,
@@ -56,7 +55,7 @@ export default function Index() {
             if (response?.type === 'success') {
                 const { code } = response.params;
 
-                const codeResponse = await fetch(`http://${ip}:3000/exchangeCodeForToken`, {
+                const codeResponse = await fetch(`http://${process.env.EXPO_PUBLIC_IP}:3000/exchangeCodeForToken`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -72,7 +71,7 @@ export default function Index() {
                     setAccessToken(codeData.access_token);
                     console.log("codeData.access_token: ", codeData.access_token);
                     // Create or update user
-                    const userResponse = await fetch(`http://${ip}:3000/getcurrentuser`, {
+                    const userResponse = await fetch(`http://${process.env.EXPO_PUBLIC_IP}:3000/getcurrentuser`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -127,7 +126,7 @@ export default function Index() {
 
         setIsSearching(true);
         try {
-            const response = await fetch(`http://${ip}:3000/searchSongs`, {
+            const response = await fetch(`http://${process.env.EXPO_PUBLIC_IP}:3000/searchSongs`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

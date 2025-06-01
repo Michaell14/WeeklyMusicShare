@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { useGlobalStore, useUserStore } from '../utils/store';
+import { useUserStore } from '../utils/store';
 
 interface Track {
     id: string;
@@ -13,14 +13,10 @@ interface Track {
 
 
 export default function FriendsList() {
-    const { accessToken, isAuthenticated } = useUserStore();
-    const { ip } = useGlobalStore();
-    const [activeTab, setActiveTab] = useState<'search' | 'friends'>('search');
+    const { accessToken, userData } = useUserStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResult, setSearchResult] = useState<{ display_name: string, id: string } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
-    const [selectedSong, setSelectedSong] = useState<any>(null);
-    const [remainingTime, setRemainingTime] = useState(0);
     const [isSendingRequest, setIsSendingRequest] = useState(false);
 
     const handleSearch = async () => {
@@ -28,7 +24,7 @@ export default function FriendsList() {
 
         setIsSearching(true);
         try {
-            const response = await fetch(`http://${ip}:3000/searchOtherUser`, {
+            const response = await fetch(`http://${process.env.EXPO_PUBLIC_IP}:3000/search-user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -51,18 +47,23 @@ export default function FriendsList() {
         if (!searchResult || !accessToken) return;
         
         setIsSendingRequest(true);
+        console.log("sending friend request to: ", searchResult.id);
+        console.log("ip: ", process.env.EXPO_PUBLIC_IP);
         try {
-            const response = await fetch(`http://${ip}:3000/send-friend-request`, {
+            const response = await fetch(`http://${process.env.EXPO_PUBLIC_IP}:3000/send-friend-request`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     access_token: accessToken,
+                    sender_spotify_id: userData?.id,
                     receiver_spotify_id: searchResult.id
                 }),
             });
+            console.log("response: ", response);
             const data = await response.json();
+            console.log("data: ", data);
             if (data.success) {
                 alert('Friend request sent successfully!');
             }

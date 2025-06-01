@@ -97,7 +97,7 @@ const searchSpotifySongs = async (access_token, query) => {
     }
 };
 
-const searchOtherUser = async (access_token, query) => {
+const searchUser = async (access_token, query) => {
     try {
         const response = await fetch(`https://api.spotify.com/v1/users/${encodeURIComponent(query)}`, {
             method: 'GET',
@@ -128,13 +128,13 @@ app.post('/searchSongs', async (req, res) => {
     }
 });
 
-app.post('/searchOtherUser', async (req, res) => {
+app.post('/search-user', async (req, res) => {
     const { access_token, query } = req.body;
     if (!access_token || !query) {
         return res.status(400).send('Access token and query are required');
     }
     try {
-        const results = await searchOtherUser(access_token, query);
+        const results = await searchUser(access_token, query);
         res.json(results);
     } catch (error) {
         res.status(500).send('Error searching Spotify');
@@ -238,45 +238,16 @@ app.post('/update-selected-song', async (req, res) => {
 
 // Send friend request
 app.post('/send-friend-request', async (req, res) => {
-    const { access_token, receiver_spotify_id } = req.body;
-    
+    const { receiver_spotify_id, sender_spotify_id } = req.body;
+    console.log("sending friend request to: ", receiver_spotify_id);
     try {
-        // Get sender's user profile
-        const senderProfile = await getCurrentUser(access_token);
-        if (!senderProfile) {
-            return res.status(400).send('Failed to get sender profile');
-        }
-
-        // Get sender's user ID from our database
-        const { data: senderUser, error: senderError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('spotify_id', senderProfile.id)
-            .single();
-
-        if (senderError) {
-            return res.status(500).send('Error finding sender user');
-        }
-
-        // Get receiver's user ID from our database
-        const { data: receiverUser, error: receiverError } = await supabase
-            .from('users')
-            .select('id')
-            .eq('spotify_id', receiver_spotify_id)
-            .single();
-
-        if (receiverError) {
-            return res.status(500).send('Error finding receiver user');
-        }
-
         // Create friend request
         const { error: requestError } = await supabase
             .from('friend_requests')
             .insert([
                 {
-                    sender_id: senderUser.id,
-                    receiver_id: receiverUser.id,
-                    status: 'pending'
+                    sender_id: sender_spotify_id,
+                    receiver_id: receiver_spotify_id
                 }
             ]);
 
